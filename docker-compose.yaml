@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  web:
+    logging:
+      driver: loki
+      options: 
+        loki-url: http://127.0.0.1:3100/loki/api/v1/push
+    build: 
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    ports: 
+      - 10051:80
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/index.html:/var/www/html/index.html
+    depends_on: 
+      - loki
+
+  loki:
+    image: grafana/loki:2.0.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./docker/loki/data:/data/loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
